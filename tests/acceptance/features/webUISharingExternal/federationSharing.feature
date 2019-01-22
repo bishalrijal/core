@@ -257,3 +257,33 @@ Feature: Federation Sharing - sharing with users on other cloud storages
     And the user accepts the offered remote shares using the webUI
     And using server "REMOTE"
     Then as "user1" file "/averylongfilenamefortestingthatfileswithlongfilenamescannotbeshared.txt" should exist
+
+  Scenario: sharee should be able to access the files/folders inside other folder
+    Given user "user1" has created folder "/common"
+    And the user has reloaded the current page of the webUI
+    And the user has opened folder "common" using the webUI
+    And the user has uploaded file "lorem.txt" using the webUI
+    And user "user1" has created folder "/common/inside-common"
+    And the user has reloaded the current page of the webUI
+    And the user has opened folder "inside-common" using the webUI
+    And the user has uploaded file "lorem-big.txt" using the webUI
+    And user "user1" has created folder "/common/inside-common/finalfolder"
+    And user "user1" from server "LOCAL" has shared "common" with user "user1" from server "REMOTE"
+    And user "user1" from server "REMOTE" has accepted the last pending share
+    And user "user1" re-logs in to "%remote_server%" using the webUI
+    When the user opens folder "common" using the webUI
+    Then file "lorem.txt" should be listed on the webUI
+    When the user opens folder "inside-common" using the webUI
+    Then file "lorem-big.txt" should be listed on the webUI
+    And folder "finalfolder" should be listed on the webUI
+
+  Scenario: sharee uploads a file inside a folder of a folder
+    Given user "user1" has created folder "/common"
+    And user "user1" has created folder "/common/inside-common"
+    And user "user1" from server "LOCAL" has shared "common" with user "user1" from server "REMOTE"
+    And user "user1" from server "REMOTE" has accepted the last pending share
+    When user "user1" re-logs in to "%remote_server%" using the webUI
+    And the user opens folder "common/inside-common" using the webUI
+    And the user uploads file "lorem.txt" using the webUI
+    And using server "LOCAL"
+    Then as "user1" file "common/inside-common/lorem.txt" should exist

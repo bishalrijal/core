@@ -107,6 +107,20 @@ class SharedWithOthersPage extends FilesPageBasic {
 	}
 
 	/**
+	 *
+	 * @throws \Exception
+	 * @return void
+	 */
+	public function isEmpty() {
+		$emptycontent = $this->find('xpath', $this->getEmptyContentXpath());
+		if ($emptycontent->isVisible()) {
+			return;
+		} else {
+			throw new \Exception("List is not Empty");
+		}
+	}
+
+	/**
 	 * finds all rows that have the given name
 	 *
 	 * @param string|array $name

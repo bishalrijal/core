@@ -37,6 +37,7 @@ use TestHelpers\SetupHelper;
 use OC\Files\External\Auth\Password\Password;
 use Page\FilesPageElement\SharingDialogElement\EditPublicLinkPopup;
 use Behat\Mink\Exception\ElementException;
+use Page\SharedWithOthersPage;
 
 require_once 'bootstrap.php';
 
@@ -62,6 +63,11 @@ class WebUISharingContext extends RawMinkContext implements Context {
 	 * @var SharedWithYouPage
 	 */
 	private $sharedWithYouPage;
+
+	/**
+	 * @var SharedWithOthersPage
+	 */
+	private $sharedWithOthersPage;
 
 	/**
 	 *
@@ -92,6 +98,7 @@ class WebUISharingContext extends RawMinkContext implements Context {
 	private $oldFedSharingFallbackSetting = null;
 
 	private $publicShareTab;
+	private $userAndGroupsTab;
 	/**
 	 *
 	 * @var EditPublicLinkPopup
@@ -105,15 +112,18 @@ class WebUISharingContext extends RawMinkContext implements Context {
 	 * @param FilesPage $filesPage
 	 * @param PublicLinkFilesPage $publicLinkFilesPage
 	 * @param SharedWithYouPage $sharedWithYouPage
+	 * @param SharedWithOthersPage $sharedWithOthersPage
 	 */
 	public function __construct(
 		FilesPage $filesPage,
 		PublicLinkFilesPage $publicLinkFilesPage,
-		SharedWithYouPage $sharedWithYouPage
+		SharedWithYouPage $sharedWithYouPage,
+		SharedWithOthersPage $sharedWithOthersPage
 	) {
 		$this->filesPage = $filesPage;
 		$this->publicLinkFilesPage = $publicLinkFilesPage;
 		$this->sharedWithYouPage = $sharedWithYouPage;
+		$this->sharedWithOthersPage = $sharedWithOthersPage;
 	}
 
 	/**
@@ -218,6 +228,17 @@ class WebUISharingContext extends RawMinkContext implements Context {
 		$this->publicShareTab = $this->sharingDialog->openPublicShareTab(
 			$this->getSession()
 		);
+	}
+	/**
+	 * @When the user delete share with user :username
+	 *
+	 * @param string $username
+	 *
+	 * @return void
+	 */
+	public function theUserDeleteShareWithUser($username) {
+		$this->sharingDialog = $this->filesPage->openSharingDialog("lorem.txt", $this->getSession());
+		$this->sharingDialog->deleteShareWithUser($this->getSession(), $username);
 	}
 
 	/**
@@ -826,6 +847,30 @@ class WebUISharingContext extends RawMinkContext implements Context {
 		PHPUnit_Framework_Assert::assertEmpty(
 			$this->sharingDialog->getAutocompleteItemsList()
 		);
+	}
+
+	/**
+	 * @Then the user :username should not be in share with user list
+	 *
+	 * @param string $username
+	 *
+	 * @return void
+	 */
+	public function theUserShouldNotBeInShareWithUserList($username) {
+		if ($this->sharingDialog->isUserPresentInShareWithList($this->getSession(), $username)) {
+			throw new \Exception("user is present");
+		}
+	}
+	/**
+	 * @Then the file :fileName should not be in share with other list
+	 *
+	 * @param string $fileName
+	 *
+	 * @return void
+	 */
+	public function theFileShouldNotBeInShareWithOtherList($fileName) {
+		$this->webUIFilesContext->theUserBrowsesToTheSharedWithOthersPage();
+		$this->sharedWithOthersPage->isEmpty();
 	}
 
 	/**
